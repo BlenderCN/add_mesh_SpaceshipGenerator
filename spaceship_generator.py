@@ -1,12 +1,3 @@
-#
-# spaceship_generator.py
-#
-# This is a Blender script that uses procedural generation to create
-# textured 3D spaceship models. Tested with Blender 2.77a.
-#
-# michael@spaceduststudios.com
-# https://github.com/a1studmuffin/SpaceshipGenerator
-#
 
 import sys
 import os
@@ -422,88 +413,6 @@ def create_texture(name, tex_type, filename, use_alpha=True):
     tex.image = img
     return tex
 
-# Adds a hull normal map texture slot to a material.
-
-def add_hull_normal_map(mat, hull_normal_colortex):
-    #mtex = mat.texture_slots.add()
-    mtex = mat.texture_paint_slots
-    mtex.texture = hull_normal_colortex
-    mtex.texture_coords = 'GLOBAL' # global UVs, yolo
-    mtex.mapping = 'CUBE'
-    mtex.use_map_color_diffuse = False
-    mtex.use_map_normal = True
-    mtex.normal_factor = 1
-    mtex.bump_method = 'BUMP_BEST_QUALITY'
-
-# Sets some basic properties for a hull material.
-def set_hull_mat_basics(mat, color, hull_normal_colortex):
-    mat.specular_intensity = 0.1
-    mat.diffuse_color = color
-    #add_hull_normal_map(mat, hull_normal_colortex)
-
-# Creates all our materials and returns them as a list.
-def create_materials():
-    ret = []
-    for material in Material:
-        ret.append(bpy.data.materials.new(material.name))
-    
-    # Choose a base color for the spaceship hull
-    hull_base_color = hls_to_rgb(
-        random(), uniform(0.05, 0.5), uniform(0, 0.25))+(1,)
-
-    # Load up the hull normal map
-    hull_normal_colortex = create_texture(
-        'ColorTex', 'IMAGE', resource_path('textures', 'hull_normal.png'))
-    hull_normal_colortex.use_normal_map = True
-
-    # Build the hull texture
-    mat = ret[Material.hull]
-    set_hull_mat_basics(mat, hull_base_color, hull_normal_colortex)
-
-    # Build the hull_lights texture
-    mat = ret[Material.hull_lights]
-    set_hull_mat_basics(mat, hull_base_color, hull_normal_colortex)
-
-    # Add a diffuse layer that sets the window color
-    mtex = mat.texture_slots.add()
-    mtex.texture = create_texture(
-        'ColorTex', 'IMAGE', resource_path('textures', 'hull_lights_diffuse.png'))
-    mtex.texture_coords = 'GLOBAL'
-    mtex.mapping = 'CUBE'
-    mtex.blend_type = 'ADD'
-    mtex.use_map_color_diffuse = True
-    mtex.use_rgb_to_intensity = True
-    mtex.color = hls_to_rgb(random(), uniform(0.5, 1), uniform(0, 0.5),1)
-
-    # Add an emissive layer that lights up the windows
-    mtex = mat.texture_slots.add()
-    mtex.texture = create_texture(
-        'ColorTex', 'IMAGE', resource_path('textures', 'hull_lights_emit.png'), False)
-    mtex.texture_coords = 'GLOBAL'
-    mtex.mapping = 'CUBE'
-    mtex.use_map_emit = True
-    mtex.emit_factor = 2.0
-    mtex.blend_type = 'ADD'
-    mtex.use_map_color_diffuse = False
-
-    # Build the hull_dark texture
-    mat = ret[Material.hull_dark]
-    set_hull_mat_basics(mat, [0.3 * x for x in hull_base_color], hull_normal_colortex)
-
-    # Choose a glow color for the exhaust + glow discs
-    glow_color = hls_to_rgb(random(), uniform(0.5, 1), 1)
-    
-    # Build the exhaust_burn texture
-    mat = ret[Material.exhaust_burn]
-    mat.diffuse_color = glow_color
-    mat.emit = 1.0
-
-    # Build the glow_disc texture
-    mat = ret[Material.glow_disc]
-    mat.diffuse_color = glow_color
-    mat.emit = 1.0
-
-    return ret
 
 # Generates a textured spaceship mesh and returns the object.
 # Just uses global cube texture coordinates rather than generating UVs.
@@ -714,20 +623,9 @@ def generate_spaceship(random_seed='',
 
     # Add materials to the spaceship
     me = ob.data
-    materials = create_materials()
-    for mat in materials:
-        if assign_materials:
-            me.materials.append(mat)
-        else:
-            me.materials.append(bpy.data.materials.new(name="Material"))
-    
+
     return obj
 
-def register():
-    bpy.utils.register_class(Material)
-
-def unregister():
-    bpy.utils.unregister_class(Material)
 
 
 if __name__ == "__main__":
